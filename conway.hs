@@ -5,9 +5,9 @@ import System.Console.ANSI
 -- Helper functions
 
 data State = Alive|Dead deriving (Eq) 
-type Box = ((Int, Int), State)
+type Cell = ((Int, Int), State)
 type Coordinate = (Int,Int)
-type Grid = [Box]
+type Grid = [Cell]
 
 -- globals
 width :: Int
@@ -25,7 +25,7 @@ initGrid coords = [((u,v), determineState u v) | u <- [0..height], v <- [0..widt
 
 
 -- Gets the cell of the given position
-getAt :: Coordinate -> Grid -> Box
+getAt :: Coordinate -> Grid -> Cell
 getAt (x,y) grid =
     grid !! (x * (1 + width) + y)
 
@@ -41,21 +41,20 @@ getStateAt pos grid = s
 
 
 -- determines if the box is alive or dead in the next generation
-aliveNeighbours :: Coordinate -> Grid -> Int
+aliveNeighbours :: Cell -> Grid -> Int
 aliveNeighbours pos grid = length $  filter (\el -> Alive == (getStateAt el grid)) $ neighbours pos
 
-nextState :: Coordinate -> Grid -> State
-nextState pos grid
+nextState :: Cell -> Grid -> State
+nextState ((x,y),state) grid
     | 2 == countAlive && Alive == state = Alive
     | 3 == countAlive = Alive
     | otherwise       = Dead
-    where countAlive = aliveNeighbours pos grid
-          state = getStateAt pos grid
+    where countAlive = aliveNeighbours (x,y) grid
 
 -- this evolves the grid with one generation
 update :: Grid -> Grid
 update grid = map 
-                 (\((x,y),_) -> ((x,y), (nextState (x,y) grid)) ) 
+                 (\cell@((x,y),s) -> ((x,y), (nextState cell grid)) ) 
                  grid 
 
 -- For this I took inspiration from an implementation of the game I found on the internet:
